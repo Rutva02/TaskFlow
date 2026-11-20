@@ -4,10 +4,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
+import Footer from "@/components/Footer";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
-import mockLogin from "@/lib/mockAuth";
+import { mockLogin } from "@/lib/mockAuth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,11 +18,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [loginError, setLoginError] = useState("");
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,174 +31,225 @@ export default function LoginPage() {
     if (!email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = "Enter a valid email address";
     }
 
     if (!password) {
       newErrors.password = "Password is required";
     } else if (password.length < 6) {
-      newErrors.password = "Password must contain at least 6 characters";
+      newErrors.password =
+        "Password must contain at least 6 characters";
     }
 
     setErrors(newErrors);
-    setSuccessMessage("");
-    setLoginError("");
+    setMessage("");
 
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
+    if (Object.keys(newErrors).length > 0) return;
+
+    setLoading(true);
 
     try {
-      setLoading(true);
-
       const result = await mockLogin(email, password);
 
-      if (result.success) {
-        localStorage.setItem("isLoggedIn", "true");
-      }
-
-      setSuccessMessage(result.message);
+      setMessage(result.message);
+      setMessageType("success");
 
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/");
       }, 1500);
     } catch (error) {
-      setLoginError(error.message);
+      setMessage(error.message);
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen w-full bg-white">
-      <section className="flex min-h-screen items-center justify-center bg-white px-5 py-12">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 md:p-10">
+    <>
+      <main className="grid min-h-screen w-full grid-cols-1 bg-slate-50 lg:grid-cols-2">
 
-          <div className="mb-8 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 text-3xl">
-              ✓
-            </div>
+        {/* LEFT SIDE - IMAGE */}
 
-            <h1 className="mt-5 text-3xl font-bold text-gray-900">
-              Welcome Back!
+        <section className="relative m-3 min-h-[250px] overflow-hidden rounded-2xl sm:m-5 sm:min-h-[320px] lg:m-6 lg:min-h-[calc(100vh-48px)]">
+          <Image
+            src="/login.jpg"
+            alt="TaskFlow workspace background"
+            fill
+            priority
+            sizes="(max-width: 1023px) 100vw, 50vw"
+            className="object-cover rounded-2xl"
+          />
+
+          {/* Image overlay */}
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
+
+          {/* Text over image */}
+
+          <div className="absolute inset-x-0 bottom-0 z-10 p-6 text-white sm:p-10 lg:p-12">
+
+            <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
+              TaskFlow.
             </h1>
 
-            <p className="mt-3 text-gray-500">
-              Login to your TaskFlow account
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-gray-200 sm:text-base lg:text-lg">
+              Plan your work. Organize your tasks.
+              Achieve more every day.
             </p>
+
           </div>
+        </section>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        {/* RIGHT SIDE - LOGIN FORM */}
 
-            <Input
-              label="Email Address"
-              name="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErrors((prev) => ({ ...prev, email: "" }));
-                setLoginError("");
-                setSuccessMessage("");
-              }}
-              error={errors.email}
-              autoComplete="email"
-            />
+        <section className="flex min-w-0 items-center justify-center px-5 py-10 sm:px-10 sm:py-14 lg:min-h-screen lg:px-12 xl:px-20">
 
-            <div>
+          <div className="w-full max-w-md">
+
+            <Link
+              href="/"
+              className="text-2xl font-bold text-indigo-600"
+            >
+              TaskFlow.
+            </Link>
+
+            <h2 className="mt-8 text-3xl font-bold text-gray-900 sm:mt-10 sm:text-4xl">
+              Welcome Back!
+            </h2>
+
+            <p className="mt-2 text-sm text-gray-500 sm:text-base">
+              Please enter your details to sign in.
+            </p>
+
+            <form
+              onSubmit={handleSubmit}
+              noValidate
+              className="mt-8 space-y-5"
+            >
+
+              {/* EMAIL */}
+
               <Input
-                label="Password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={password}
+                label="Email Address"
+                name="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
                 onChange={(e) => {
-                  setPassword(e.target.value);
-                  setErrors((prev) => ({ ...prev, password: "" }));
-                  setLoginError("");
-                  setSuccessMessage("");
+                  setEmail(e.target.value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    email: ""
+                  }));
+                  setMessage("");
                 }}
-                error={errors.password}
-                autoComplete="current-password"
+                error={errors.email}
+                autoComplete="email"
               />
 
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800"
-              >
-                {showPassword ? "Hide Password" : "Show Password"}
-              </button>
-            </div>
+              {/* PASSWORD */}
 
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <label className="flex cursor-pointer items-center gap-2 text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 accent-indigo-600"
+              <div>
+                <Input
+                  label="Password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors((prev) => ({
+                      ...prev,
+                      password: ""
+                    }));
+                    setMessage("");
+                  }}
+                  error={errors.password}
+                  autoComplete="current-password"
                 />
-                Remember me
-              </label>
 
-              <button
-                type="button"
-                onClick={() =>
-                  alert("Password recovery is not available in this demo.")
-                }
-                className="font-medium text-indigo-600 hover:underline"
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded"
+                >
+                  {showPassword ? "Hide Password" : "Show Password"}
+                </button>
+              </div>
+
+              {/* REMEMBER ME */}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+
+                <label className="flex cursor-pointer items-center gap-2 text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="h-4 w-4 accent-indigo-600"
+                  />
+                  Remember me
+                </label>
+
+                <span className="font-medium text-indigo-600">
+                  Forgot Password?
+                </span>
+
+              </div>
+
+              {/* LOGIN BUTTON */}
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full"
               >
-                Forgot Password?
-              </button>
-            </div>
+                {loading ? "Logging in..." : "Login"}
+              </Button>
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? "Logging in..." : "Login"}
-            </Button>
+              {/* SUCCESS / ERROR MESSAGE */}
 
-            {loading && (
-              <p role="status" className="text-center text-sm text-indigo-600">
-                Please wait, verifying your details...
-              </p>
-            )}
+              {message && (
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className={`rounded-lg p-3 text-center text-sm ${
+                    messageType === "success"
+                      ? "bg-green-50 text-green-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {message}
+                </p>
+              )}
 
-            {successMessage && (
-              <p role="status" className="rounded-lg bg-green-50 p-3 text-center text-sm text-green-700">
-                {successMessage}
-              </p>
-            )}
+            </form>
 
-            {loginError && (
-              <p role="alert" className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-700">
-                {loginError}
-              </p>
-            )}
-          </form>
+            {/* SIGN UP */}
 
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="mt-8 text-center text-sm text-gray-500">
               Don't have an account?{" "}
-              <span className="font-medium text-indigo-600">
+              <span className="font-semibold text-indigo-600">
                 Sign up coming soon
               </span>
             </p>
 
+            {/* BACK TO HOMEPAGE */}
+
             <Link
               href="/"
-              className="mt-5 inline-block text-sm font-medium text-gray-500 hover:text-indigo-600"
+              className="mt-6 block text-center text-sm text-gray-500 hover:text-indigo-600"
             >
               ← Back to Homepage
             </Link>
-          </div>
 
-        </div>
-      </section>
-    </main>
+          </div>
+        </section>
+
+      </main>
+
+      <Footer />
+    </>
   );
 }
