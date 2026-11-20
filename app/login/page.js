@@ -5,8 +5,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import mockLogin from "@/lib/mockAuth";
@@ -54,26 +52,26 @@ export default function LoginPage() {
 
       const result = await mockLogin(email, password);
 
+      if (result.success) {
+        localStorage.setItem("isLoggedIn", "true");
+      }
+
       setSuccessMessage(result.message);
 
       setTimeout(() => {
-        router.push("/");
+        router.push("/dashboard");
       }, 1500);
-
     } catch (error) {
       setLoginError(error.message);
-
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <Navbar />
-
-      <section className="flex min-h-[75vh] items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-5 py-16">
-        <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-xl md:p-10">
+    <main className="min-h-screen w-full bg-white">
+      <section className="flex min-h-screen items-center justify-center bg-white px-5 py-12">
+        <div className="w-full max-w-md rounded-2xl bg-white p-8 md:p-10">
 
           <div className="mb-8 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 text-3xl">
@@ -146,7 +144,9 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => alert("Password recovery is not available in this demo.")}
+                onClick={() =>
+                  alert("Password recovery is not available in this demo.")
+                }
                 className="font-medium text-indigo-600 hover:underline"
               >
                 Forgot Password?
@@ -178,7 +178,6 @@ export default function LoginPage() {
                 {loginError}
               </p>
             )}
-
           </form>
 
           <div className="mt-8 text-center">
@@ -199,8 +198,6 @@ export default function LoginPage() {
 
         </div>
       </section>
-
-      <Footer />
     </main>
   );
 }
